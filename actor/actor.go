@@ -9,7 +9,7 @@ type Message interface {}
 
 
 // Actor is an entity that processes messages, sends message to other
-// actor and stores some state.
+// actors and stores some state.
 type Actor interface {
 	// Receive is called when Actor receives a new Message.
 	// Returns a new Actor state and/or error.
