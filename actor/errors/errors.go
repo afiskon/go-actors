@@ -2,8 +2,8 @@ package errors
 
 import "fmt"
 
-// InvalidPid is returned by System.Send when actor with given Pid doesn't
-// exists (e.g. it was terminated).
+// InvalidPid is returned by System.Send when actor with given a Pid doesn't
+// exist (e.g. it was terminated).
 var InvalidPid = fmt.Errorf("Invalid actor Pid")
 
 // MailboxFull is returned by System.Send if actor's Mailbox is full.
