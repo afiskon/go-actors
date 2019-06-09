@@ -6,6 +6,36 @@ import (
 	"sync"
 )
 
+// Mailbox is a queue of messages sent to a given actor.
+type Mailbox interface {
+	// Enqueue places a new message to the Mailbox. If Mailbox is full
+	// method returns errors.MailboxFull. Mailboxes are unbounded unless
+	// SetLimit was called with a value of `limit` > 0.
+	Enqueue(message actor.Message) error
+
+	// Enqueue places a new message in the front of the messages queue. The
+	// message will be Dequeued before any messages placed using Enqueue.
+	EnqueueFront(message actor.Message) error
+
+	// Dequeue gets a next message from the Mailbox. If Mailbox is empty,
+	// Dequeue blocks until someone places a message to the Mailbox. There
+	// should be only one goroutine that uses this method.
+	Dequeue() actor.Message
+
+	// Stash places a message to the separate queue of delayed messages.
+	// This method should be called from the same single goroutine that calls Dequeue.
+	Stash(message actor.Message)
+
+	// Unstash places all previously Stash'ed messages in the front of the message queue.
+	// The original order of Stash'ed messages is preserved. This method should be called
+	// from the same single goroutine that calls Dequeue.
+	Unstash()
+
+	// SetLimit sets the maximum capacity of the Mailbox. This limit doesn't affect
+	// stashed and prioritized messages - the amount of these messages is always unlimited.
+	SetLimit(limit int)
+}
+
 // mailbox implements actor.Mailbox interface.
 type mailbox struct {
 	lock sync.Mutex
@@ -18,7 +48,7 @@ type mailbox struct {
 }
 
 // New creates a new Mailbox
-func New() actor.Mailbox {
+func New() Mailbox {
 	mbox := &mailbox{}
 	mbox.regularQueue.init()
 	mbox.priorityQueue.init()

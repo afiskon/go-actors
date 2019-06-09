@@ -12,17 +12,17 @@ type system struct {
 	wg sync.WaitGroup
 	lock sync.Mutex
 	lastPid actor.Pid
-	mailboxes map[actor.Pid] actor.Mailbox
+	mailboxes map[actor.Pid] mailbox.Mailbox
 }
 
 // New creates a new System
 func New() actor.System {
 	return &system{
-		mailboxes: make(map[actor.Pid] actor.Mailbox),
+		mailboxes: make(map[actor.Pid] mailbox.Mailbox),
 	}
 }
 
-func actorLoop(actor actor.Actor, mailbox actor.Mailbox) {
+func actorLoop(actor actor.Actor, mailbox mailbox.Mailbox) {
 	var err error
 	for {
 		prevState := actor
