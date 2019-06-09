@@ -33,6 +33,11 @@ type System interface {
 	// returned if actor with a given Pid doesn't exists or was terminated.
 	Send(pid Pid, message Message) error
 
+	// SendPriority sends a priority Message to the Actor with a given Pid.
+	// Priority messages are processed before any other messages. InvalidPid is
+	// returned if actor with a given Pid doesn't exists or was terminated.
+	SendPriority(pid Pid, message Message) error
+
 	// AwaitTermination returns when all spawned Actors terminate.
 	AwaitTermination()
 }

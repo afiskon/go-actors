@@ -83,6 +83,18 @@ func (s *system) Send(pid actor.Pid, message actor.Message) error {
 	return mbox.Enqueue(message)
 }
 
+func (s *system) SendPriority(pid actor.Pid, message actor.Message) error {
+	s.lock.Lock()
+	mbox, ok := s.mailboxes[pid]
+	s.lock.Unlock()
+
+	if !ok {
+		return errors.InvalidPid
+	}
+
+	return mbox.EnqueueFront(message)
+}
+
 func (s *system) AwaitTermination() {
 	s.wg.Wait()
 }

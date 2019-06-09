@@ -10,11 +10,13 @@ import (
 )
 
 func TestSystemStartStop(t *testing.T) {
+	t.Parallel()
 	system := New()
 	system.AwaitTermination()
 }
 
 func TestSystemSendNonExistingActor(t *testing.T) {
+	t.Parallel()
 	system := New()
 	err := system.Send(actor.Pid(123), "hello")
 	require.Equal(t, err, errors.InvalidPid)
@@ -31,6 +33,7 @@ func (a *TestSpawnActor) Receive(actor.Message) (actor.Actor, error) {
 }
 
 func TestSystemSpawnSendTerminate(t *testing.T) {
+	t.Parallel()
 	system := New()
 	received := make(chan struct{}, 1)
 	pid := system.Spawn(func(system actor.System, pid actor.Pid) (state actor.Actor, limit int) {
@@ -47,6 +50,57 @@ func TestSystemSpawnSendTerminate(t *testing.T) {
 		// still terminating ..
 		time.Sleep(10 * time.Millisecond)
 	}
+	system.AwaitTermination()
+}
+
+type TestPriorityActor struct {
+	regular_ch chan struct{}
+	priority_ch chan struct{}
+}
+
+type RegularMessage struct {}
+type PriorityMessage struct {}
+type TerminateMessage struct {}
+
+func (a *TestPriorityActor) Receive(message actor.Message) (actor.Actor, error) {
+	switch v := message.(type) {
+	case RegularMessage:
+		a.regular_ch <- struct{}{}
+		return a, nil
+	case PriorityMessage:
+		a.priority_ch <- struct{}{}
+		return a, nil
+	case TerminateMessage:
+		return a, errors.Terminate
+	default:
+		return a, fmt.Errorf("Don't know what to do with %T", v)
+	}
+}
+
+func TestSystemSendPriority(t *testing.T) {
+	t.Parallel()
+	system := New()
+	regular_ch := make(chan struct{})
+	priority_ch := make(chan struct{})
+	pid := system.Spawn(func(system actor.System, pid actor.Pid) (state actor.Actor, limit int) {
+		return &TestPriorityActor{regular_ch: regular_ch, priority_ch: priority_ch}, 0
+	})
+	err := system.Send(pid, RegularMessage{})
+	require.NoError(t, err)
+	err = system.Send(pid, RegularMessage{})
+	require.NoError(t, err)
+	err = system.SendPriority(pid, PriorityMessage{})
+	require.NoError(t, err)
+
+	// unblock Receive
+	<-regular_ch
+	// make sure PriorityMessage arrived before 2nd RegularMessage
+	<-priority_ch
+	// unblock Receive once again
+	<-regular_ch
+
+	err = system.Send(pid, TerminateMessage{})
+	require.NoError(t, err)
 	system.AwaitTermination()
 }
 
@@ -102,6 +156,7 @@ func (a *StateProcessingStash) Receive(msg actor.Message) (actor.Actor, error) {
 }
 
 func TestSystemStashUnstash(t *testing.T) {
+	t.Parallel()
 	system := New()
 	progress := make(chan int, 3)
 	pid := system.Spawn(func(system actor.System, pid actor.Pid) (state actor.Actor, limit int) {
@@ -143,6 +198,7 @@ func (a *MailboxFullActor) Receive(msg actor.Message) (actor.Actor, error) {
 }
 
 func TestSystemMailboxFull(t *testing.T) {
+	t.Parallel()
 	system := New()
 	ch_received := make(chan struct{}, 1)
 	ch_waiting := make(chan struct{}, 1)
@@ -194,8 +250,6 @@ type SendPingMessage struct {
 	pong_received chan struct{}
 }
 
-type TerminateMessage struct {}
-
 func (a *PingPongActor) Receive(message actor.Message) (actor.Actor, error) {
 	switch v := message.(type) {
 	case SendPingMessage:
@@ -224,6 +278,7 @@ func newPingPongActor(system actor.System, pid actor.Pid) (state actor.Actor, li
 }
 
 func TestPingPong(t *testing.T) {
+	t.Parallel()
 	system := New()
 	pong_received := make(chan struct{}, 1)
 	pid1 := system.Spawn(newPingPongActor)

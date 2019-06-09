@@ -6,7 +6,7 @@ import "fmt"
 // exists (e.g. it was terminated).
 var InvalidPid = fmt.Errorf("Invalid actor Pid")
 
-// MailboxFull is returned by Mailbox.Enqueue if it's full.
+// MailboxFull is returned by System.Send if actor's Mailbox is full.
 var MailboxFull = fmt.Errorf("Mailbox is full")
 
 // UnexpectedMessage is returned by Actor.Receive when the actor didn't
