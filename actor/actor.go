@@ -20,7 +20,7 @@ type Actor interface {
 // It is called when Actor is created, before receiving any Messages.
 // `state` sets the initial actor state. If `limit` is > 0 it sets the
 // maximum size of the mailbox (only for regular, not stashed, not
-// prioritized messages).
+// priority messages).
 type Constructor func(system System, pid Pid) (state Actor, limit int)
 
 // System is a class responsible for creating, scheduling and otherwise

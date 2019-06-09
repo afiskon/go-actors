@@ -32,7 +32,7 @@ type Mailbox interface {
 	Unstash()
 
 	// SetLimit sets the maximum capacity of the Mailbox. This limit doesn't affect
-	// stashed and prioritized messages - the amount of these messages is always unlimited.
+	// stashed and priority messages - the amount of these messages is always unlimited.
 	SetLimit(limit int)
 }
 
