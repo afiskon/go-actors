@@ -20,6 +20,8 @@ func TestSystemSendNonExistingActor(t *testing.T) {
 	system := New()
 	err := system.Send(actor.Pid(123), "hello")
 	require.Equal(t, err, errors.InvalidPid)
+	err = system.SendPriority(actor.Pid(123), "hello")
+	require.Equal(t, err, errors.InvalidPid)
 	system.AwaitTermination()
 }
 
@@ -54,7 +56,8 @@ func TestSystemSpawnSendTerminate(t *testing.T) {
 }
 
 type TestPriorityActor struct {
-	regular_ch chan struct{}
+	regular_received chan struct{}
+	regular_unblock chan struct{}
 	priority_ch chan struct{}
 }
 
@@ -65,7 +68,8 @@ type TerminateMessage struct {}
 func (a *TestPriorityActor) Receive(message actor.Message) (actor.Actor, error) {
 	switch v := message.(type) {
 	case RegularMessage:
-		a.regular_ch <- struct{}{}
+		a.regular_received <- struct{}{}
+		a.regular_unblock <- struct{}{}
 		return a, nil
 	case PriorityMessage:
 		a.priority_ch <- struct{}{}
@@ -80,24 +84,35 @@ func (a *TestPriorityActor) Receive(message actor.Message) (actor.Actor, error) 
 func TestSystemSendPriority(t *testing.T) {
 	t.Parallel()
 	system := New()
-	regular_ch := make(chan struct{})
+	regular_received := make(chan struct{})
+	regular_unblock := make(chan struct{})
 	priority_ch := make(chan struct{})
 	pid := system.Spawn(func(system actor.System, pid actor.Pid) (state actor.Actor, limit int) {
-		return &TestPriorityActor{regular_ch: regular_ch, priority_ch: priority_ch}, 0
+		return &TestPriorityActor{
+			regular_received: regular_received,
+			regular_unblock: regular_unblock,
+			priority_ch: priority_ch,
+		}, 0
 	})
 	err := system.Send(pid, RegularMessage{})
 	require.NoError(t, err)
+
+	// make sure the message was received
+	<-regular_received
+
+	// send two more messages
 	err = system.Send(pid, RegularMessage{})
 	require.NoError(t, err)
 	err = system.SendPriority(pid, PriorityMessage{})
 	require.NoError(t, err)
 
 	// unblock Receive
-	<-regular_ch
+	<-regular_unblock
 	// make sure PriorityMessage arrived before 2nd RegularMessage
 	<-priority_ch
 	// unblock Receive once again
-	<-regular_ch
+	<-regular_received
+	<-regular_unblock
 
 	err = system.Send(pid, TerminateMessage{})
 	require.NoError(t, err)
