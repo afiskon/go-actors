@@ -3,7 +3,7 @@ package actor
 // Pid is an unique ID of the Actor.
 type Pid uint64
 
-// Message represents a message sent between actor.
+// Message represents a message sent between actors.
 type Message interface {}
 
 // Mailbox is a queue of messages sent to a given actor.
@@ -51,15 +51,15 @@ type Actor interface {
 // prioritized messages).
 type Constructor func(system System, pid Pid) (state Actor, limit int)
 
-// System a class responsible for creating, scheduling and otherwise
+// System is a class responsible for creating, scheduling and otherwise
 // controlling actor.
 type System interface {
+	// Spawn creates a new Actor and returns it Pid.
+	Spawn(constructor Constructor) Pid
+
 	// Send send a Message to the Actor with a given Pid. InvalidPid is returned
 	// if actor with given Pid doesn't exists or was terminated.
 	Send(pid Pid, message Message) error
-
-	// Spawn creates a new Actor and returns it Pid.
-	Spawn(constructor Constructor) Pid
 
 	// AwaitTermination returns when all spawned Actors terminate.
 	AwaitTermination()
