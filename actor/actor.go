@@ -24,7 +24,7 @@ type Actor interface {
 type Constructor func(system System, pid Pid) (state Actor, limit int)
 
 // System is a class responsible for creating, scheduling and otherwise
-// controlling actor.
+// controlling actors.
 type System interface {
 	// Spawn creates a new Actor and returns it's Pid.
 	Spawn(constructor Constructor) Pid
