@@ -8,7 +8,7 @@ type Message interface {}
 
 
 
-// Actor is an entity that processes messages, sends message to other
+// Actor is an entity that processes messages, sends messages to other
 // actors and stores some state.
 type Actor interface {
 	// Receive is called when Actor receives a new Message.
@@ -29,7 +29,7 @@ type System interface {
 	// Spawn creates a new Actor and returns it's Pid.
 	Spawn(constructor Constructor) Pid
 
-	// Send send a Message to the Actor with a given Pid. InvalidPid is
+	// Send sends a Message to the Actor with a given Pid. InvalidPid is
 	// returned if actor with a given Pid doesn't exist or was terminated.
 	Send(pid Pid, message Message) error
 
