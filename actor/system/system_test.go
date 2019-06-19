@@ -246,6 +246,56 @@ func TestSystemMailboxFull(t *testing.T) {
 	system.AwaitTermination()
 }
 
+type LoopActor struct {
+	system actor.System
+	pid actor.Pid
+	ch_test_ok chan struct{}
+}
+
+type LoopActorStartTest struct {}
+type LoopActorRequest struct {
+	from actor.Pid
+}
+type LoopActorResponse struct {}
+
+func (a *LoopActor) Receive(msg actor.Message) (actor.Actor, error) {
+	switch v := msg.(type) {
+	case LoopActorStartTest:
+		_ = a.system.Send(a.pid, LoopActorRequest{from: a.pid} )
+		return a, nil
+	case LoopActorRequest:
+		_ = a.system.Send(v.from, LoopActorResponse{})
+		return a, nil
+	case LoopActorResponse:
+		a.ch_test_ok <- struct{}{}
+		return a, nil
+	case TerminateMessage:
+		return a, errors.Terminate
+	default:
+		return a, fmt.Errorf("Don't know what to do with %T", v)
+	}
+}
+
+func TestSystemLoopMessage(t *testing.T) {
+	t.Parallel()
+	system := New()
+	ch_test_ok := make(chan struct{}, 1)
+	pid := system.Spawn(func(system actor.System, pid actor.Pid) (state actor.Actor, limit int) {
+		state = &LoopActor{
+			system: system,
+			pid: pid,
+			ch_test_ok: ch_test_ok,
+		}
+		return
+	})
+	err := system.Send(pid, LoopActorStartTest{})
+	require.NoError(t, err)
+	<-ch_test_ok
+	err = system.Send(pid, TerminateMessage{})
+	require.NoError(t, err)
+	system.AwaitTermination()
+}
+
 type PingPongActor struct {
 	system actor.System
 	pid actor.Pid
