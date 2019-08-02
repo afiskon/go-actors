@@ -31,6 +31,7 @@ type System interface {
 
 	// Send sends a Message to the Actor with a given Pid. InvalidPid is
 	// returned if actor with a given Pid doesn't exist or was terminated.
+	// MailboxFull is returned if acrtor's mailbox is full.
 	Send(pid Pid, message Message) error
 
 	// SendPriority sends a priority Message to the Actor with a given Pid.
