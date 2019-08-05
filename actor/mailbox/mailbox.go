@@ -1,8 +1,8 @@
 package mailbox
 
 import (
-	"github.com/afiskon/go-actors/actor"
-	"github.com/afiskon/go-actors/actor/errors"
+	"github.com/insolar/go-actors/actor"
+	"github.com/insolar/go-actors/actor/errors"
 	"sync"
 )
 
@@ -38,13 +38,13 @@ type Mailbox interface {
 
 // mailbox implements actor.Mailbox interface.
 type mailbox struct {
-	lock sync.Mutex
+	lock             sync.Mutex
 	dequeueIsWaiting bool
-	notifyDequeue chan struct{}
-	limit int
-	regularQueue  queue
-	priorityQueue queue
-	stashQueue queue
+	notifyDequeue    chan struct{}
+	limit            int
+	regularQueue     queue
+	priorityQueue    queue
+	stashQueue       queue
 }
 
 // New creates a new Mailbox

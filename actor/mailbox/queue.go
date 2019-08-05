@@ -1,11 +1,11 @@
 package mailbox
 
-import "github.com/afiskon/go-actors/actor"
+import "github.com/insolar/go-actors/actor"
 
 type queue struct {
-	len int
-	next *queue
-	prev *queue
+	len     int
+	next    *queue
+	prev    *queue
 	payload actor.Message
 }
 
@@ -25,7 +25,7 @@ func (q *queue) length() int {
 }
 
 func (q *queue) enqueue(payload actor.Message) {
-	new :=  &queue{
+	new := &queue{
 		payload: payload,
 	}
 
@@ -49,7 +49,7 @@ func (q *queue) dequeue() actor.Message {
 	return msg
 }
 
-func (q1 *queue) moveFromQueue(q2* queue) {
+func (q1 *queue) moveFromQueue(q2 *queue) {
 	if q2.empty() {
 		return
 	}

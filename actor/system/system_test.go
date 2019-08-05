@@ -2,9 +2,9 @@ package system
 
 import (
 	"fmt"
+	"github.com/insolar/go-actors/actor"
+	"github.com/insolar/go-actors/actor/errors"
 	"github.com/stretchr/testify/require"
-	"github.com/afiskon/go-actors/actor"
-	"github.com/afiskon/go-actors/actor/errors"
 	"testing"
 	"time"
 )
@@ -30,7 +30,7 @@ type TestSpawnActor struct {
 }
 
 func (a *TestSpawnActor) Receive(actor.Message) (actor.Actor, error) {
-	a.ch <- struct {}{}
+	a.ch <- struct{}{}
 	return a, errors.Terminate
 }
 
@@ -57,13 +57,13 @@ func TestSystemSpawnSendTerminate(t *testing.T) {
 
 type TestPriorityActor struct {
 	regular_received chan struct{}
-	regular_unblock chan struct{}
-	priority_ch chan struct{}
+	regular_unblock  chan struct{}
+	priority_ch      chan struct{}
 }
 
-type RegularMessage struct {}
-type PriorityMessage struct {}
-type TerminateMessage struct {}
+type RegularMessage struct{}
+type PriorityMessage struct{}
+type TerminateMessage struct{}
 
 func (a *TestPriorityActor) Receive(message actor.Message) (actor.Actor, error) {
 	switch v := message.(type) {
@@ -90,8 +90,8 @@ func TestSystemSendPriority(t *testing.T) {
 	pid := system.Spawn(func(system actor.System, pid actor.Pid) (state actor.Actor, limit int) {
 		return &TestPriorityActor{
 			regular_received: regular_received,
-			regular_unblock: regular_unblock,
-			priority_ch: priority_ch,
+			regular_unblock:  regular_unblock,
+			priority_ch:      priority_ch,
 		}, 0
 	})
 	err := system.Send(pid, RegularMessage{})
@@ -131,8 +131,8 @@ type StateProcessingStash struct {
 	ch chan int
 }
 
-type MsgStash struct {}
-type MsgUnstash struct {}
+type MsgStash struct{}
+type MsgUnstash struct{}
 
 func (a *StateWaitingStash) Receive(msg actor.Message) (actor.Actor, error) {
 	switch v := msg.(type) {
@@ -190,8 +190,8 @@ func TestSystemStashUnstash(t *testing.T) {
 
 type MailboxFullActor struct {
 	ch_received chan struct{}
-	ch_waiting chan struct{}
-	ch_echo chan int
+	ch_waiting  chan struct{}
+	ch_echo     chan int
 }
 
 func (a *MailboxFullActor) Receive(msg actor.Message) (actor.Actor, error) {
@@ -221,9 +221,9 @@ func TestSystemMailboxFull(t *testing.T) {
 	pid := system.Spawn(func(system actor.System, pid actor.Pid) (state actor.Actor, limit int) {
 		limit = 3
 		state = &MailboxFullActor{
-			ch_received:ch_received,
-			ch_waiting: ch_waiting,
-			ch_echo: ch_echo,
+			ch_received: ch_received,
+			ch_waiting:  ch_waiting,
+			ch_echo:     ch_echo,
 		}
 		return
 	})
@@ -247,21 +247,21 @@ func TestSystemMailboxFull(t *testing.T) {
 }
 
 type LoopActor struct {
-	system actor.System
-	pid actor.Pid
+	system     actor.System
+	pid        actor.Pid
 	ch_test_ok chan struct{}
 }
 
-type LoopActorStartTest struct {}
+type LoopActorStartTest struct{}
 type LoopActorRequest struct {
 	from actor.Pid
 }
-type LoopActorResponse struct {}
+type LoopActorResponse struct{}
 
 func (a *LoopActor) Receive(msg actor.Message) (actor.Actor, error) {
 	switch v := msg.(type) {
 	case LoopActorStartTest:
-		_ = a.system.Send(a.pid, LoopActorRequest{from: a.pid} )
+		_ = a.system.Send(a.pid, LoopActorRequest{from: a.pid})
 		return a, nil
 	case LoopActorRequest:
 		_ = a.system.Send(v.from, LoopActorResponse{})
@@ -282,8 +282,8 @@ func TestSystemLoopMessage(t *testing.T) {
 	ch_test_ok := make(chan struct{}, 1)
 	pid := system.Spawn(func(system actor.System, pid actor.Pid) (state actor.Actor, limit int) {
 		state = &LoopActor{
-			system: system,
-			pid: pid,
+			system:     system,
+			pid:        pid,
 			ch_test_ok: ch_test_ok,
 		}
 		return
@@ -297,8 +297,8 @@ func TestSystemLoopMessage(t *testing.T) {
 }
 
 type PingPongActor struct {
-	system actor.System
-	pid actor.Pid
+	system        actor.System
+	pid           actor.Pid
 	pong_received chan struct{}
 }
 
@@ -311,7 +311,7 @@ type PongMessage struct {
 }
 
 type SendPingMessage struct {
-	to actor.Pid
+	to            actor.Pid
 	pong_received chan struct{}
 }
 
@@ -337,7 +337,7 @@ func (a *PingPongActor) Receive(message actor.Message) (actor.Actor, error) {
 func newPingPongActor(system actor.System, pid actor.Pid) (state actor.Actor, limit int) {
 	state = &PingPongActor{
 		system: system,
-		pid: pid,
+		pid:    pid,
 	}
 	return
 }

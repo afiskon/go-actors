@@ -1,8 +1,8 @@
 package mailbox
 
 import (
+	"github.com/insolar/go-actors/actor/errors"
 	"github.com/stretchr/testify/require"
-	"github.com/afiskon/go-actors/actor/errors"
 	"testing"
 	"time"
 )

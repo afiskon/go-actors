@@ -1,24 +1,24 @@
 package system
 
 import (
-	"github.com/afiskon/go-actors/actor"
-	"github.com/afiskon/go-actors/actor/errors"
-	"github.com/afiskon/go-actors/actor/mailbox"
+	"github.com/insolar/go-actors/actor"
+	"github.com/insolar/go-actors/actor/errors"
+	"github.com/insolar/go-actors/actor/mailbox"
 	"sync"
 )
 
 // system implements actor.System
 type system struct {
-	wg sync.WaitGroup
-	lock sync.Mutex
-	lastPid actor.Pid
-	mailboxes map[actor.Pid] mailbox.Mailbox
+	wg        sync.WaitGroup
+	lock      sync.Mutex
+	lastPid   actor.Pid
+	mailboxes map[actor.Pid]mailbox.Mailbox
 }
 
 // New creates a new System
 func New() actor.System {
 	return &system{
-		mailboxes: make(map[actor.Pid] mailbox.Mailbox),
+		mailboxes: make(map[actor.Pid]mailbox.Mailbox),
 	}
 }
 
